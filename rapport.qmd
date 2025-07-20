@@ -1,0 +1,68 @@
+---
+title: "Rapport de laboratoire 5"
+subtitle: "MTH8408"
+author:
+  - name: Votre nom
+    email: votre.adresse@polymtl.ca
+    affiliation:
+      - name: Polytechnique Montréal
+format:
+  pdf:
+    keep-tex: false
+    documentclass: article
+    include-in-header:
+      - text: |
+            \usepackage{eulervm}
+            \usepackage{xspace}
+            \usepackage[francais]{babel}
+    geometry:
+      - margin=1in
+    papersize: letter
+    colorlinks: true
+    urlcolor: blue
+engine: julia
+---
+
+```{julia}
+#| output: false
+VERSION == v"1.11.5" || error("please use julia version 1.11.5")
+using Pkg
+Pkg.activate("labo9_env")
+```
+
+# Question 1
+
+Répondre à l'exercice 1 du laboratoire 8.
+
+# Question 2
+
+#### Répondre à l'exercice 2 du laboratoire 8 (modélisation et résolution du problème de la corde suspendue).
+
+```{julia}
+# votre code ici
+```
+
+#### Afficher graphiquement les états, commandes et états adjoints finaux.
+
+```{julia}
+# votre code ici
+```
+
+#### Commenter les résultats
+
+# Questions 3
+
+#### Modéliser et résoudre numériquement le problème des réservoirs du devoir 5.
+
+```{julia}
+# votre code ici
+```
+
+#### Afficher graphiquement les états, commandes et états adjoints finaux.
+
+```{julia}
+# votre code ici
+```
+
+#### Commenter les résultats
+
