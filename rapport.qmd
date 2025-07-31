@@ -2,8 +2,8 @@
 title: "Rapport de laboratoire 5"
 subtitle: "MTH8408"
 author:
-  - name: Votre nom
-    email: votre.adresse@polymtl.ca
+  - name: Joey Van Melle
+    email: joey.van-melle@polymtl.ca
     affiliation:
       - name: Polytechnique Montréal
 format:
