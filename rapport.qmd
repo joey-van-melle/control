@@ -28,41 +28,179 @@ engine: julia
 VERSION == v"1.11.5" || error("please use julia version 1.11.5")
 using Pkg
 Pkg.activate("labo9_env")
+Pkg.add("OptimalControl")
+Pkg.add("NLPModelsIpopt")
+Pkg.add("Plots")
+
+using OptimalControl
+using NLPModelsIpopt
 ```
 
 # Question 1
 
 Répondre à l'exercice 1 du laboratoire 8.
 
+## Exercice
+
+Pour modéliser un problème avec une contrainte isopérimétrique
+introduire une nouvelle variable d'état pour se ramener à un problème sans contraintes intégrales sous la forme d'un problème de commande optimale.
+
+\begin{align*}
+  \min_x \ & \int_0^1 f(x(t), \dot{x}(t), t) \, \mathrm{d}t \\
+  \text{s.t.} \ & \int_0^1 h(x(t), \dot{x}(t), t) \, \mathrm{d}t = 0 \\
+                & x(0) = x_0, \ x(1) = x_1,
+\end{align*}
+
+On introduit une nouvelle variable d'état $z$.
+On pose : $\dot{z} = h (x(t),\dot{x}(t),t)$, $z(0)=0$, $z(1) = 1$. On aura donc $\int_0^1 h(x(t), \dot{x}(t), t)\;dt = \int_0^1\dot{z}\;dt = z(1)-z(0) = 0.$ La contrainte isopérimétrique sera donc respectée. Le problème devient donc : 
+\begin{align*}
+      \min_{x, z} \ & \int_0^1 f(x(t), \dot{x}(t), t) \, \mathrm{d}t \\
+  \text{s.t.} \ & \dot{z} = h(x(t), \dot{x}(t), t) \\
+                & x(0) = x_0, \ x(1) = x_1, \ z(0) = 0, \ z(1)=0
+\end{align*}
+
+Il reste maintenant à transformer ce problème en problème de commande optimale. On pose $u(t) = \dot{x}(t)$. On obtient alors:
+
+\begin{align*}
+      \min_{x, z, u} \ & \int_0^1 f(x(t), u(t), t) \, \mathrm{d}t \\
+  \text{s.t.} \ & \dot{z} = h(x(t), u(t), t), \ t \in [0,\;1]\\
+                & \dot{x}(t) = u(t),  \ t \in [0,\;1]\\
+                & x(0) = x_0, \ x(1) = x_1, \ z(0) = 0, \ z(1)=0
+\end{align*}
+
+
 # Question 2
 
 #### Répondre à l'exercice 2 du laboratoire 8 (modélisation et résolution du problème de la corde suspendue).
 
+On veut minimiser l'énergie potentielle. On a $dE_p = \rho g x(t)\;dl = \rho g x(t)\sqrt{1+\dot{x}(t)^2} \;dt$. On a donc que l'énergie potentielle de la corde est : $\int_0^1 \rho g x(t)\sqrt{1+\dot{x}(t)^2}\;dt$. On a évidemment les contraintes $x(0) = a,$ $x(1) = b$. De plus, la corde doit avoir une longeur $L = \int_0^1\sqrt{1+\dot{x}(t)^2}\;dt$. On a donc le problème : 
+\begin{align*}
+      \min_{x} \ & \int_0^1  \rho g x(t)\sqrt{1+\dot{x}(t)^2}\, \mathrm{d}t \\
+  \text{s.t.} \ & \int_0^1 \sqrt{1+\dot{x}(t)^2} - L\;dt = 0,\\
+                & x(0) = a, \ x(1) = b
+\end{align*}
+
+En introduisant une variable de contrôle $u$ et une variable d'état $z$ et en effectuant les mêmes étapes qu'à l'exercice précédent, on obtient : 
+\begin{align*}
+      \min_{x,z,u} \ & \int_0^1  \rho g x(t)\sqrt{1+u(t)^2}\, \mathrm{d}t \\
+  \text{s.t.} \ & \dot{x}(t) = u(t), \ t \in [0,\;1]\\
+                & \dot{z}(t) = \sqrt{1+u(t)^2} - L\\
+                & x(0) = a, \ x(1) = b, \ z(0) = 0, \ z(1) = 0
+\end{align*}
+
+Pour la modélisation qui suit, j'ai posé des valeurs pour ρ, $L$, $a$, $b$ et $g$ mais elles sont facilement modibiables. 
+
 ```{julia}
 # votre code ici
+#ρ = 1/9.8
+#L = 1.5
+#g = 9.8
+#a = 1
+#b = 1
+#
+#t0 = 0
+#tf = 1
+#x0 = a
+#xf = b
+#z0 = 0
+#zf = 0
+#
+#
+#ocp = @def begin
+#
+#    t ∈ [ t0, tf ], time
+#    x ∈ R², state
+#    u ∈ R, control
+#
+#    x(t0) == [x0, z0]
+#    x(tf) == [xf, zf]
+#
+#    ẋ(t) == [u(t), √(1+u(t)^2)-L]
+#
+#    ∫( ρ*g*x1(t)√(1+u(t)^2) ) → min
+#
+#end
 ```
 
 #### Afficher graphiquement les états, commandes et états adjoints finaux.
 
 ```{julia}
-# votre code ici
+#| warning: false
+
+#sol = solve(ocp)
+#
+#using Plots
+#
+#plot(sol)
 ```
 
 #### Commenter les résultats
+
+On voit tout d'abord que la solution obtenue a du sens. Les points a et b choisis étant égaux, on s'attendait à une parabole centrée en t = 0.5. C'est bien ce qui a été obtenu. L'algorithme à convergé en 200 itérations ce qui est qu'en même long si on considère que c'est un problème d'une seule variable à la base. On observe que la faisabilité du problème primal est très petite, presque l'epsilon matchine. On peut donc considéré que la solution est quasi-réalisable et donc acceptable pour ce problème. Notons que $||d||$ a des valeurs assez grandes pendant la majorité de la durée du programme. Cette valeur chute à la dernière itération seulement. On voit que le $u$ est quasi-linéaire. Cela est dû au fait que $u$ est égale à la dérivée de $x$ qui est quadratique. On remarque que le costate (multiplicateur de lagrange) est lui aussi presque linéaire. Cela signifie que la sensitivité est presque constante par rapport au temps. Ceci est normal puisque chaque morceau de corde à un apport équivalent à l'énergie potentielle si on ignore la hauteur. On peut d'ailleurs remarquer que la valeur absolue de la dérivée du costate est plus grande là où la corde est plus élevée. C'est ce à quoi on s'attendait.
+
 
 # Questions 3
 
 #### Modéliser et résoudre numériquement le problème des réservoirs du devoir 5.
 
+On veut réécrire le problème de façon à avoir un objectif qui est seulement une intégrale. On a :
+\begin{align*}
+    x_2(1) = x_2(0) + \int_0^1 \dot{x}_2(t)\;dt = \int_0^1 \dot{x}_2(t)\;dt = \int_0^1 -x_1(t) + u(t)\;dt
+\end{align*}
+
+On a donc 
+
+\begin{align*}
+    \max_{x, u} \ & x_2(1) = \min_{x, u} \int_0^1 x_1(t) - u(t)\;dt 
+\end{align*}
+
 ```{julia}
 # votre code ici
+#| warning: false
+
+using OptimalControl
+
+t0 = 0
+tf = 1
+x0 = 0
+xf = 0.5
+y0 = 0
+#yf = undefined
+
+
+ocp = @def begin
+
+    t ∈ [ t0, tf ], time
+    x ∈ R², state
+    u ∈ R, control
+
+    x(t0) == [x0, y0]
+    x1(tf) == xf
+
+    x1(t) <= 1
+    u(t) <= 1
+    u(t) >= 0
+
+    ẋ(t) == [-x1(t)+u(t), x1(t)]
+
+    ∫(-x1(t)) → min
+    
+
+end
+
+sol = solve(ocp)
 ```
 
 #### Afficher graphiquement les états, commandes et états adjoints finaux.
 
 ```{julia}
 # votre code ici
+using Plots 
+
+plot(sol)
+
 ```
 
 #### Commenter les résultats
+On remarque que la solution obtenue est très éloignée de la solution analytique trouvée en devoir. Notamment, $u$ prend des valeurs beaucoup plus élevées que permise par la contrainte, même si c'est sur un très petit intervalle. Cet abus de contrainte permet de remplir presque instantanément le premier réservoir. Ce qui est visiblement impossible si $u$ ne peut pas prendre de valeur plus grande que 1. Cette solution est donc selo moi inadmissible pour ce modèle. Mis-à-part cet abus, l'algorithme a convergé très rapidement, le premier réservoir est bel et bien remplis de moitié au temps final et on voit que le second réservoir se remplis graduellement tout au long du temps, ce qui était à espérer d'une solution "logique". Le costate se met à baisser au même moment où le premier réservoir commence à se vider. C'est normal car si on attend trop longtemps, le réservoir n'aura pas le temps de se vider jusqu'à ce qu'il atteigne la moitié de sa capacité. 
 
